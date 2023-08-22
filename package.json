@@ -1,6 +1,6 @@
 {
   "name": "digitaljs",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Digital logic simulator",
   "main": "./lib/circuit.js",
   "files": [
@@ -61,10 +61,10 @@
     "wavecanvas": "^1.1.1",
     "web-worker": "^1.1.0"
   },
-  "homepage": "https://github.com/tilk/digitaljs",
+  "homepage": "https://github.com/EDAcation/digitaljs",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tilk/digitaljs.git"
+    "url": "https://github.com/EDAcation/digitaljs.git"
   },
   "jest": {
     "testEnvironment": "jest-environment-node",
