@@ -162,7 +162,12 @@ export class HeadlessCircuit {
             const cellArgs = _.clone(dev);
             cellArgs.id = devid;
             if (cellType == this._cells.Subcircuit)
-                cellArgs.graph = this._makeGraph(subcircuits[dev.celltype], subcircuits, { nested: true });
+                try {
+                    cellArgs.graph = this._makeGraph(subcircuits[dev.celltype], subcircuits, { nested: true });
+                } catch (e) {
+                    console.error(`Error while making graph for cell ${cellType}: ${e}`);
+                    continue
+                }
             const cell = new cellType(cellArgs);
             graph.addCell(cell);
         }
