@@ -174,7 +174,10 @@ export class HeadlessCircuit {
                     continue
                 }
             const cell = new cellType(cellArgs);
-            const cellAttrs = this._cellAttributes[cell.get('celltype')] ?? this._cellAttributes[cell.get('type')];
+            const cellAttrs = _.merge(
+                this._cellAttributes[cell.get('type')],
+                this._cellAttributes[cell.get('celltype')]
+            );
             if (cellAttrs) {
                 cell.setAttrs(cellAttrs);
             }
