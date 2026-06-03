@@ -1,13 +1,8 @@
 "use strict";
 
-import 'babel-polyfill';
-import dagre from 'dagre';
-import graphlib from 'graphlib';
-import * as joint from 'jointjs';
-import _ from 'lodash';
+import * as joint from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 import $ from 'jquery';
-import Backbone from 'backbone';
-import { Vector3vl } from '3vl';
 import 'jquery-ui/ui/widgets/dialog.js';
 import 'jquery-ui/themes/base/all.css';
 import * as cells from './cells.mjs';
@@ -20,11 +15,6 @@ import { MonitorView, Monitor } from './monitor.mjs';
 import { IOPanelView } from './iopanel.mjs';
 import { elk_layout } from './elkjs.mjs';
 import './style.css';
-
-// polyfill ResizeObserver for e.g. Firefox ESR 68.8
-// this line and the node-module might be removed as soon as ResizeObserver is widely supported
-// see https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver#Browser_compatibility
-import ResizeObserver from 'resize-observer-polyfill';
 
 export { HeadlessCircuit, getCellTypeStr, getCellType, cells, tools, engines, transform, MonitorView, Monitor, IOPanelView };
 
@@ -164,7 +154,7 @@ export class Circuit extends HeadlessCircuit {
         }
 
         this._engine.observeGraph(graph);
-        const opts = _.merge({ el: elem, model: graph }, paperOptions);
+        const opts = joint.util.merge({ el: elem, model: graph }, paperOptions);
         const paper = new joint.dia.Paper(opts);
         paper.$el.addClass('djs');
         paper.freeze();
@@ -173,7 +163,7 @@ export class Circuit extends HeadlessCircuit {
         // lazy graph layout
         if (!graph.get('laid_out')) {
             if (this._layoutEngine == "dagre") {
-                joint.layout.DirectedGraph.layout(graph, {
+                DirectedGraph.layout(graph, {
                     nodeSep: 20,
                     edgeSep: 0,
                     rankSep: 110,
@@ -188,9 +178,7 @@ export class Circuit extends HeadlessCircuit {
                     },
                     exportElement: (element) => {
                         return element.getLayoutSize();
-                    },
-                    dagre: dagre,
-                    graphlib: graphlib
+                    }
                 });
             } else if (this._layoutEngine == "elkjs") {
                 elk_layout(graph);

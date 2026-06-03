@@ -1,5 +1,5 @@
 
-import _ from 'lodash';
+import { util } from '@joint/core';
 import { BaseEngine } from './base.mjs';
 import { Vector3vl } from '3vl';
 import * as cells from '../cells.mjs';
@@ -17,7 +17,7 @@ export class WorkerEngine extends BaseEngine {
         this._promises = Object.create(null);
         this._alarms = Object.create(null);
         this._uniqueCounter = 0;
-        this._worker = workerURL ? new Worker(workerURL) : new Worker(new URL('./worker-worker.mjs', import.meta.url));
+        this._worker = workerURL ? new Worker(workerURL, {type:'module'}) : new Worker(new URL('./worker-worker.mjs', import.meta.url), {type:'module'});
         this._worker.onmessage = (e) => this._handleMessage(e.data);
         this.interval = 10;
         this._addGraph(this._graph);
@@ -219,7 +219,7 @@ export class WorkerEngine extends BaseEngine {
             const newOutputs = {};
             for (const [port, val] of Object.entries(vals))
                 newOutputs[port] = Vector3vl.fromClonable(val);
-            _.defaults(newOutputs, gate.get('outputSignals'));
+            util.defaults(newOutputs, gate.get('outputSignals'));
             gate.set('outputSignals', newOutputs);
         }
         this.trigger('postUpdateGates', tick);

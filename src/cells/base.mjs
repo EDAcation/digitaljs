@@ -1,10 +1,9 @@
 "use strict";
 
-import * as joint from 'jointjs';
-import _ from 'lodash';
 import { Vector3vl } from '3vl';
-import * as tools from '../tools.mjs';
+import * as joint from '@joint/core';
 import $ from 'jquery';
+import * as tools from '../tools.mjs';
 
 export const portGroupAttrs = {
     wire: {
@@ -37,31 +36,29 @@ export const portGroupAttrs = {
 };
 
 // Common base class for gate models
-export const Gate = joint.shapes.basic.Generic.define('Gate', {
+export const Gate = joint.dia.Element.define('Gate', {
     /* default properties */
     propagation: 1,
     label: '',
-    
+
     size: { width: 80, height: 30 },
     inputSignals: {},
     outputSignals: {},
     attrs: {
         '.': { magnet: false },
         body: { stroke: 'black', strokeWidth: 2 },
-        'text': {
-            fontSize: '8pt',
-            fill: 'black'
-        },
         label: {
             refX: .5, refDy: 3,
-            textAnchor: 'middle'
+            textAnchor: 'middle',
+            fontSize: '8pt',
+            fill: 'black'
         }
     },
     ports: {
         groups: {
             'in': {
                 position: 'left',
-                attrs: _.merge({}, portGroupAttrs, {
+                attrs: joint.util.merge({}, portGroupAttrs, {
                     wire: { x2: -25 },
                     port: { magnet: 'passive', refX: -25 },
                     bits: { refDx: 1, refY: -3, textAnchor: 'start' },
@@ -70,7 +67,7 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
             },
             'out': {
                 position: 'right',
-                attrs: _.merge({}, portGroupAttrs, {
+                attrs: joint.util.merge({}, portGroupAttrs, {
                     wire: { x2: 25 },
                     port: { magnet: true, refX: 25 },
                     bits: { refX: -1, refY: -3, textAnchor: 'end' },
@@ -91,16 +88,15 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
         if (ports.items) {
             this._preprocessPorts(ports.items);
         }
-        
-        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        joint.dia.Element.prototype.initialize.apply(this, arguments);
         this.prepare();
-        
+
         this.bindAttrToProp('label/text', 'label');
         if (this._unsupportedPropChanges.length > 0) {
             this.on(this._unsupportedPropChanges.map(prop => 'change:'+prop).join(' '), (__, ___, opt) => {
                 if (opt.init) return;
-                
-                const changed = _.intersection(Object.keys(this.changed), this._unsupportedPropChanges);
+
+                const changed = joint.util.intersection(Object.keys(this.changed), this._unsupportedPropChanges);
                 changed.forEach(attr => {
                     this.set(attr, this.previous(attr), {init: true});
                 });
@@ -126,19 +122,18 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
             }
         }
     },
-  
+
     /*
      * Private methods.
      */
     _changeOutputSignals(sigs) {
-        _.chain(this.graph.getConnectedLinks(this, {outbound: true}))
-            .groupBy((wire) => wire.get('source').port)
-            .forEach((wires, port) => 
-                wires.forEach((wire) => wire.set('signal', sigs[port])))
-            .value();
+        this.graph.getConnectedLinks(this, {outbound: true})
+            .forEach(wire => {
+                wire.set('signal', sigs[wire.get('source').port]);
+            });
     },
     _setInput(sig, port) {
-        const signals = _.clone(this.get('inputSignals'));
+        const signals = joint.util.clone(this.get('inputSignals'));
         signals[port] = sig;
         this.set('inputSignals', signals);
     },
@@ -167,7 +162,7 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
         }
     },
     _setPortsBits(portsBits) {
-        const ports = _.cloneDeep(this.get('ports'));
+        const ports = joint.util.cloneDeep(this.get('ports'));
         const portsReset = [];
         for (const portid in portsBits) {
             const bits = portsBits[portid];
@@ -199,12 +194,12 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
             in: this.get('inputSignals'),
             out: this.get('outputSignals')
         }
-        
+
         for (const port of ports) {
             console.assert(port.bits >= 0);
             signals[port.dir][port.id] = this._resetPortValue(port);
         }
-        
+
         this.set('inputSignals', signals.in);
         this.set('outputSignals', signals.out);
     },
@@ -213,11 +208,11 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
             in: this.get('inputSignals'),
             out: this.get('outputSignals')
         }
-        
+
         for (const port of ports) {
             delete signals[port.dir][port.id];
         }
-        
+
         this.set('inputSignals', signals.in);
         this.set('outputSignals', signals.out);
     },
@@ -230,14 +225,14 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
     },
     addPorts(ports) {
         this._preprocessPorts(ports);
-        joint.shapes.basic.Generic.prototype.addPorts.apply(this, arguments);
+        joint.dia.Element.prototype.addPorts.apply(this, arguments);
     },
     removePort(port, opt) {
         this.removePorts([port]);
     },
     removePorts(ports, opt) {
         this._removePortsSignals(ports);
-        joint.shapes.basic.Generic.prototype.removePorts.apply(this, arguments);
+        joint.dia.Element.prototype.removePorts.apply(this, arguments);
     },
 
     /*
@@ -252,12 +247,12 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
             const x = side == 'left' ? elBBox.topLeft().x : side == 'right' ? elBBox.topRight().x : undefined;
             const y = side == 'top' ? elBBox.topLeft().y : side == 'bottom' ? elBBox.bottomRight().y : undefined;
             if (x !== undefined) {
-                return _.map(portsArgs, function(portArgs, index) {
+                return portsArgs.map((portArgs, index) => {
                     index += portArgs.idxOffset || 0;
                     return joint.g.Point({ x: x, y: index*step + offset });
                 });
             } else {
-                return _.map(portsArgs, function(portArgs, index) {
+                return portsArgs.map((portArgs, index) => {
                     index += portArgs.idxOffset || 0;
                     return joint.g.Point({ x: index*step + offset, y: y });
                 });
@@ -309,13 +304,14 @@ export const Gate = joint.shapes.basic.Generic.define('Gate', {
      * Gate parameters for serialization.
      */
     getGateParams(layout) {
-        return _.cloneDeep(_.pick(this.attributes, this._gateParams.concat(layout ? this._gateLayoutParams : [])));
+        return joint.util.cloneDeep(joint.util.pick(this.attributes, this._gateParams.concat(layout ? this._gateLayoutParams : [])));
     },
     _gateParams: ['label', 'type', 'propagation', 'source_positions'],
     _gateLayoutParams: ['position'],
     _unsupportedPropChanges: [],
     _operationHelpers: [],
-    _presentationParams: []
+    _presentationParams: [],
+    _gateKind: 'combinational'
 });
 
 export const GateView = joint.dia.ElementView.extend({
@@ -347,7 +343,7 @@ export const GateView = joint.dia.ElementView.extend({
         const signals =
             dir === 'in' ? this.model.get('inputSignals') :
             dir === 'out' ? this.model.get('outputSignals') :
-            _.merge({}, this.model.get('inputSignals'), this.model.get('outputSignals'));
+            joint.util.merge({}, this.model.get('inputSignals'), this.model.get('outputSignals'));
         for (const port in signals) {
             const signal = signals[port];
             const attrs = this.attrs.signal[
@@ -495,7 +491,7 @@ export const Wire = joint.shapes.standard.Link.define('Wire', {
         if (this.has('netname'))
             connector.name = this.get('netname');
         if (layout && this.has('vertices') && this.get('vertices').length > 0)
-            connector.vertices = _.cloneDeep(this.get('vertices'));
+            connector.vertices = joint.util.cloneDeep(this.get('vertices'));
         return connector;
     },
     getWirePath() {

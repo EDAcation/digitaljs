@@ -1,10 +1,8 @@
 "use strict";
 
-import * as joint from 'jointjs';
-import _ from 'lodash';
+import * as joint from '@joint/core';
 import { Box, BoxView } from './base.mjs';
 import { IO, Input, Output } from './io.mjs';
-import * as help from '../help.mjs';
 
 // add offset of 10pt to account for the top label at layout time
 const subcircuit_pos_offset = 10;
@@ -23,13 +21,14 @@ export const Subcircuit = Box.define('Subcircuit', {
         },
         type: {
             refX: .5, refY: -10,
-            textAnchor: 'middle', textVerticalAnchor: 'middle'
+            textAnchor: 'middle', textVerticalAnchor: 'middle',
+            fontSize: '8pt'
         }
     }
 }, {
     initialize() {
-        this.bindAttrToProp('text.type/text', 'celltype');
-        
+        this.bindAttrToProp('type/text', 'celltype');
+
         const graph = this.get('graph');
         console.assert(graph instanceof joint.dia.Graph);
         graph.set('subcircuit', this);
@@ -60,7 +59,7 @@ export const Subcircuit = Box.define('Subcircuit', {
         this.set('circuitIOmap', iomap);
         this.get('ports').items = ports;
         this.set('warning', graph._warnings > 0);
-        
+
         Box.prototype.initialize.apply(this, arguments);
     },
     _resetPortValue(port) {
@@ -107,7 +106,7 @@ export const Subcircuit = Box.define('Subcircuit', {
 });
 
 export const SubcircuitView = BoxView.extend({
-    attrs: _.merge({}, BoxView.prototype.attrs, {
+    attrs: joint.util.merge({}, BoxView.prototype.attrs, {
         warning: {
             warn: { wrapper: { 'stroke-opacity': '0.5' } },
             none: { wrapper: { 'stroke-opacity': '0' } }

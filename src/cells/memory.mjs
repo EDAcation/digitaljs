@@ -1,8 +1,6 @@
 "use strict";
 
 import $ from 'jquery';
-import _ from 'lodash';
-import * as joint from 'jointjs';
 import { Box, BoxView } from './base.mjs';
 import * as help from '../help.mjs';
 import { Vector3vl, Mem3vl } from '3vl';
@@ -171,9 +169,9 @@ export const Memory = Box.define('Memory', {
             for (const [num, wrport] of this.get('wrports').entries()) {
                 const wrportname = 'wr' + num;
                 const mask_ok = (val, num) => typeof val == 'boolean' ? val : val[num];
-                if ('transparent' in port && mask_ok(port.transparent, num) && port_active(wrportname, wrport) && data[portname + 'addr'] == data[wrportname + 'addr'])
+                if ('transparent' in port && mask_ok(port.transparent, num) && port_active(wrportname, wrport) && is_enabled(wrportname, wrport) && data[portname + 'addr'] == data[wrportname + 'addr'])
                     out[portname + 'data'] = write_value(wrportname, wrport, out[portname + 'data'], data[wrportname + 'data']);
-                if ('collision' in port && mask_ok(port.collision, num) && port_active(wrportname, wrport) && data[portname + 'addr'] == data[wrportname + 'addr'])
+                if ('collision' in port && mask_ok(port.collision, num) && port_active(wrportname, wrport) && is_enabled(wrportname, wrport) && data[portname + 'addr'] == data[wrportname + 'addr'])
                     out[portname + 'data'] = write_value(wrportname, wrport, out[portname + 'data'], Vector3vl.xes(bits));
             }
 
@@ -259,7 +257,8 @@ export const Memory = Box.define('Memory', {
     },
     _gateParams: Box.prototype._gateParams.concat(['bits', 'abits', 'rdports', 'wrports', 'words', 'offset']),
     _unsupportedPropChanges: Box.prototype._unsupportedPropChanges.concat(['bits', 'abits', 'rdports', 'wrports', 'words', 'offset']),
-    _operationHelpers: Box.prototype._operationHelpers.concat(['_memrdports', '_memwrports', '_memports', '_calcaddr'])
+    _operationHelpers: Box.prototype._operationHelpers.concat(['_memrdports', '_memwrports', '_memports', '_calcaddr']),
+    _gateKind: 'stateful'
 });
 export const MemoryView = BoxView.extend({
     _autoResizeBox: true,

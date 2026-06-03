@@ -1,8 +1,6 @@
 "use strict";
 
-import * as joint from 'jointjs';
 import { Box, BoxView } from './base.mjs';
-import * as help from '../help.mjs';
 import { Vector3vl } from '3vl';
 
 // D flip-flops
@@ -117,7 +115,8 @@ export const Dff = Box.define('Dff', {
         } else return apply_sr(this.get('outputSignals').out);
     },
     _gateParams: Box.prototype._gateParams.concat(['polarity', 'bits', 'initial', 'arst_value', 'srst_value', 'enable_srst', 'no_data']),
-    _unsupportedPropChanges: Box.prototype._unsupportedPropChanges.concat(['polarity', 'bits', 'initial', 'arst_value', 'srst_value', 'enable_srst', 'no_data'])
+    _unsupportedPropChanges: Box.prototype._unsupportedPropChanges.concat(['polarity', 'bits', 'initial', 'arst_value', 'srst_value', 'enable_srst', 'no_data']),
+    _gateKind: 'stateful'
 });
 export const DffView = BoxView.extend({
     _autoResizeBox: true

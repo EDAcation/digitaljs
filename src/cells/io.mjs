@@ -1,7 +1,7 @@
 "use strict";
 
+import * as joint from '@joint/core';
 import { Box, BoxView } from './base.mjs';
-import _ from 'lodash';
 import $ from 'jquery';
 import { Vector3vl } from '3vl';
 
@@ -118,7 +118,7 @@ export const IO = NumBase.define('IO', {
             this._setPortsBits(b);
             if (this.get('mode') != 0) this._checkMode();
         });
-        this.bindAttrToProp('text.ioname/text', 'net');
+        this.bindAttrToProp('ioname/text', 'net');
     },
     onAdd() {
         this._checkMode();
@@ -183,7 +183,7 @@ export const Input = IO.define('Input', {
             refHeight: .6, refWidth: .6,
             cursor: 'pointer'
         },
-        'foreignObject.valinput': {
+        valinput: {
             refX: .5, refY: .5,
             refWidth: -10, refHeight: -10,
             xAlignment: 'middle', yAlignment: 'middle',
@@ -224,6 +224,7 @@ export const Input = IO.define('Input', {
     markupBus: IO.prototype.markupBus.concat([{
             tagName: 'foreignObject',
             className: 'valinput',
+            selector: 'valinput',
             children: [{
                 tagName: 'body',
                 namespaceURI: 'http://www.w3.org/1999/xhtml',
@@ -237,7 +238,7 @@ export const Input = IO.define('Input', {
     numbaseType: 'read'
 });
 export const InputView = IOView.extend({
-    attrs: _.merge({
+    attrs: joint.util.merge({
         button: {
             high: { btnface: { 'fill': 'black' } },
             low: { btnface: { 'fill': 'white' } }
@@ -270,7 +271,7 @@ export const InputView = IOView.extend({
         IOView.prototype.render.apply(this, arguments);
         this._updateView();
     },
-    events: _.merge({
+    events: joint.util.merge({
         //button
         "click .btnface": "_onButton",
         "mousedown .btnface": "stopprop", // Prevent drag
@@ -336,7 +337,7 @@ export const Output = IO.define('Output', {
     numbaseType: 'show'
 });
 export const OutputView = IOView.extend({
-    attrs: _.merge({
+    attrs: joint.util.merge({
         lamp: {
             high: { led: { 'fill': '#03c03c' } },
             low: { led: { 'fill': '#fc7c68' } },

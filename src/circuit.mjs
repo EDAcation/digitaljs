@@ -1,17 +1,15 @@
 "use strict";
 
-import * as joint from 'jointjs';
-import _ from 'lodash';
-import Backbone from 'backbone';
-import { Vector3vl, Display3vl } from '3vl';
+import { Display3vl, Vector3vl } from '3vl';
+import * as joint from '@joint/core';
 import * as cells from './cells.mjs';
-import * as help from './help.mjs';
 import * as engines from './engines.mjs';
+import { SynchEngine } from './engines/synch.mjs';
+import * as help from './help.mjs';
 import * as tools from './tools.mjs';
 import * as transform from './transform.mjs';
-import { SynchEngine } from './engines/synch.mjs';
 
-export { cells, tools, engines, transform };
+export { cells, engines, tools, transform };
 
 const CELL_TYPES = {
     '$not': 'Not',
@@ -76,8 +74,9 @@ export function getCellType(tp) {
 }
 
 export class HeadlessCircuit {
-    constructor(data, {cellsNamespace = {}, engine = SynchEngine, engineOptions = {}, cellAttributes = {}} = {}) {
+    constructor(data, {cellsNamespace = {}, engine = SynchEngine, engineOptions = {}, defaultCombinationalPropagation, cellAttributes = {}} = {}) {
         this._cells = Object.assign(cells, cellsNamespace);
+        this._defaultCombinationalPropagation = defaultCombinationalPropagation;
         this._cellAttributes = cellAttributes;
         this._display3vl = new Display3vl();
         this._display3vl.addDisplay(new help.Display3vlASCII());
@@ -164,7 +163,7 @@ export class HeadlessCircuit {
             const dev = data.devices[devid];
             if (dev.position) laid_out = true;
             const cellType = (dev.type in this._cells) ? this._cells[dev.type] : getCellType(dev.celltype);
-            const cellArgs = _.clone(dev);
+            const cellArgs = joint.util.clone(dev);
             cellArgs.id = devid;
             if (cellType == this._cells.Subcircuit)
                 try {
@@ -173,6 +172,8 @@ export class HeadlessCircuit {
                     console.error(`Error while making graph for cell ${cellType}: ${e}`);
                     continue
                 }
+            if (this._defaultCombinationalPropagation !== undefined && !('propagation' in cellArgs) && cellType.prototype._gateKind == 'combinational')
+                cellArgs.propagation = this._defaultCombinationalPropagation;
             const cell = new cellType(cellArgs);
             const cellAttrs = _.merge(
                 {},
@@ -372,5 +373,5 @@ export class HeadlessCircuit {
     }
 };
 
-_.extend(HeadlessCircuit.prototype, Backbone.Events);
+joint.util.assign(HeadlessCircuit.prototype, joint.mvc.Events);
 
