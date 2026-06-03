@@ -18,6 +18,8 @@ import './style.css';
 
 export { HeadlessCircuit, getCellTypeStr, getCellType, cells, tools, engines, transform, MonitorView, Monitor, IOPanelView };
 
+joint.config.useCSSSelectors = true;
+
 export const paperOptions = {
     async: true,
     sorting: joint.dia.Paper.sorting.APPROX, //needed for async paper, see https://github.com/clientIO/joint/issues/1320
